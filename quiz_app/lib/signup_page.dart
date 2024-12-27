@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quiz_app/login_page.dart';
+import 'package:quiz_app/main.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -33,6 +34,7 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController name = TextEditingController();
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +55,7 @@ class _SignupPageState extends State<SignupPage> {
             const SizedBox(height: 20),
             TextFormField(
               controller: name,
-              style: const TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 hintText: "Enter your name",
                 hintStyle: TextStyle(color: Colors.grey),
@@ -69,7 +71,7 @@ class _SignupPageState extends State<SignupPage> {
             const SizedBox(height: 20),
             TextFormField(
               controller: email,
-              style: const TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 hintText: "Enter your email",
                 hintStyle: TextStyle(color: Colors.grey),
@@ -86,7 +88,7 @@ class _SignupPageState extends State<SignupPage> {
             TextFormField(
               controller: password,
               obscureText: true,
-              style: const TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 hintText: "Enter your password",
                 hintStyle: TextStyle(color: Colors.grey),
@@ -105,16 +107,25 @@ class _SignupPageState extends State<SignupPage> {
                 margin: const EdgeInsets.symmetric(horizontal: 50),
                 child: ElevatedButton(
                   onPressed: () {
-                    databaseRef
-                        .child('UserInfo')
-                        .push()
-                        .set({
-                          'Name : ${name.text.toString()} Email: ${email.text.toString()} Password : ${password.text.toString()}'
-                        })
-                        .then((_) {})
-                        .onError((error, StackTrace) {
-                          debugPrint('Error : $error');
-                        });
+                    if (password.text.toString().length > 10 &&
+                        email.text.toString().contains('@gmail.com') &&
+                        email.text.toString().length > 8) {
+                      databaseRef.child('UserInfo').push().set({
+                        'Name : ${name.text.toString()} Email: ${email.text.toString()} Password : ${password.text.toString()}'
+                      }).then((_) {
+                        debugPrint("Signup Successfully");
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => QuizScreen(
+                                      username: name.text.toString(),
+                                    )));
+                      }).onError((error, StackTrace) {
+                        debugPrint('Error : $error');
+                      });
+                    } else {
+                      debugPrint("Not Signup Successfully");
+                    }
                   },
                   child: const Text("Signup"),
                 ),

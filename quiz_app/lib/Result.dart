@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class ResultsPage extends StatelessWidget {
   final List<Map<String, dynamic>> results;
+  final String? username;
 
-  ResultsPage({required this.results});
+  ResultsPage({required this.results , required this.username});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,8 @@ class ResultsPage extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final result = results[index];
                       return Card(
-                        margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                        margin: EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
                         child: ListTile(
                           title: Text(
                             result['question'] ?? "No question provided",
@@ -44,7 +46,8 @@ class ResultsPage extends StatelessWidget {
                             children: [
                               SizedBox(height: 8),
                               Text("Your Answer: ${result['selected']}"),
-                              Text("Correct Answer: ${result['correctAnswer']}"),
+                              Text(
+                                  "Correct Answer: ${result['correctAnswer']}"),
                               if (result['isCorrect'])
                                 Text(
                                   "You answered correctly!",
@@ -58,8 +61,11 @@ class ResultsPage extends StatelessWidget {
                             ],
                           ),
                           trailing: Icon(
-                            result['isCorrect'] ? Icons.check_circle : Icons.cancel,
-                            color: result['isCorrect'] ? Colors.green : Colors.red,
+                            result['isCorrect']
+                                ? Icons.check_circle
+                                : Icons.cancel,
+                            color:
+                                result['isCorrect'] ? Colors.green : Colors.red,
                           ),
                         ),
                       );

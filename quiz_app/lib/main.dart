@@ -238,6 +238,8 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
 }
 
 class QuizScreen extends StatefulWidget {
+  final String? username;
+  QuizScreen({this.username});
   @override
   _QuizScreenState createState() => _QuizScreenState();
 }
@@ -250,8 +252,24 @@ class _QuizScreenState extends State<QuizScreen> {
   String? _selectedOption;
   Set<String> _shownQuestionIds = {};
   List<Map<String, dynamic>> _results = [];
+  int _questionCounter = 0; // Counter for the number of questions answered
+  final int _totalQuestions = 10; // Limit to 10 questions
 
   Future<void> _getRandomQuestion() async {
+    if (_questionCounter >= _totalQuestions) {
+      // If all questions have been answered, navigate to ResultPage
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultsPage(
+            results: _results,
+            username: widget.username,
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _selectedOption = null;
@@ -321,7 +339,10 @@ class _QuizScreenState extends State<QuizScreen> {
     return Scaffold(
       backgroundColor: Colors.black87,
       appBar: AppBar(
-        title: Text('Quiz', style: TextStyle(color: Colors.white)),
+        title: Text(
+          'Quiz (${_questionCounter + 1}/$_totalQuestions)', // Show question progress
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
@@ -330,7 +351,10 @@ class _QuizScreenState extends State<QuizScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ResultsPage(results: _results),
+                  builder: (context) => ResultsPage(
+                    results: _results,
+                    username: widget.username,
+                  ),
                 ),
               );
             },
@@ -373,18 +397,14 @@ class _QuizScreenState extends State<QuizScreen> {
                             (index) => Padding(
                               padding: const EdgeInsets.only(bottom: 12.0),
                               child: Container(
-                                width: double
-                                    .infinity, // Makes the width take available space
-                                constraints: BoxConstraints(
-                                    maxWidth:
-                                        500), // Maximum width to make it more responsive
+                                width: double.infinity,
+                                constraints: BoxConstraints(maxWidth: 500),
                                 child: Card(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   elevation: 5,
-                                  color: Colors
-                                      .white, // White background for options
+                                  color: Colors.white,
                                   child: RadioListTile<String>(
                                     title: Text(
                                       _options![index],
@@ -397,10 +417,8 @@ class _QuizScreenState extends State<QuizScreen> {
                                         _selectedOption = value;
                                       });
                                     },
-                                    activeColor: Color(
-                                        0xFF4CAF50), // Green active color for selected option
-                                    tileColor: Colors
-                                        .white, // White background for each option
+                                    activeColor: Color(0xFF4CAF50),
+                                    tileColor: Colors.white,
                                   ),
                                 ),
                               ),
@@ -433,20 +451,21 @@ class _QuizScreenState extends State<QuizScreen> {
                                     : "Wrong! The correct answer is ${_currentQuestion?['correct_answer']}.",
                               ),
                             ));
+                            setState(() {
+                              _questionCounter++;
+                            });
                             _getRandomQuestion();
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white, // Button text color
-                          backgroundColor: Color(
-                              0xFF00796B), // Dark teal background for button
+                          foregroundColor: Colors.white,
+                          backgroundColor: Color(0xFF00796B),
                           padding: EdgeInsets.symmetric(
                             horizontal: 32,
                             vertical: 16,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(12), // Rounded button
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           elevation: 5,
                         ),
