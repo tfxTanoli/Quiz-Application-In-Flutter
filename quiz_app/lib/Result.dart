@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 class ResultsPage extends StatelessWidget {
   final List<Map<String, dynamic>> results;
   final String? username;
+  final int? correctanswers;
 
-  ResultsPage({required this.results , required this.username});
+  ResultsPage(
+      {required this.results,
+      required this.username,
+      required this.correctanswers});
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +25,15 @@ class ResultsPage extends StatelessWidget {
             )
           : Column(
               children: [
+                SizedBox(height: 20),
+                Text(
+                  "$username, you answered $correctanswers out of ${results.length} questions correctly!",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(

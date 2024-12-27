@@ -252,7 +252,9 @@ class _QuizScreenState extends State<QuizScreen> {
   String? _selectedOption;
   Set<String> _shownQuestionIds = {};
   List<Map<String, dynamic>> _results = [];
-  int _questionCounter = 0; // Counter for the number of questions answered
+  int _questionCounter = 0;
+  int correctQuestionCounter =
+      0; // Counter for the number of questions answered
   final int _totalQuestions = 10; // Limit to 10 questions
 
   Future<void> _getRandomQuestion() async {
@@ -264,6 +266,7 @@ class _QuizScreenState extends State<QuizScreen> {
           builder: (context) => ResultsPage(
             results: _results,
             username: widget.username,
+            correctanswers: correctQuestionCounter,
           ),
         ),
       );
@@ -339,9 +342,15 @@ class _QuizScreenState extends State<QuizScreen> {
     return Scaffold(
       backgroundColor: Colors.black87,
       appBar: AppBar(
-        title: Text(
-          'Quiz (${_questionCounter + 1}/$_totalQuestions)', // Show question progress
-          style: TextStyle(color: Colors.white),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Username ${widget.username}',
+                style: TextStyle(color: Colors.white)), // Left-aligned username
+            Text('Quiz (${_questionCounter + 1}/$_totalQuestions)',
+                style: TextStyle(
+                    color: Colors.white)), // Right-aligned question progress
+          ],
         ),
         backgroundColor: Colors.black,
         actions: [
@@ -354,6 +363,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   builder: (context) => ResultsPage(
                     results: _results,
                     username: widget.username,
+                    correctanswers: correctQuestionCounter,
                   ),
                 ),
               );
@@ -436,6 +446,10 @@ class _QuizScreenState extends State<QuizScreen> {
                             bool isCorrect = _selectedOption ==
                                 _currentQuestion?['correct_answer'];
 
+                            if (isCorrect) {
+                              correctQuestionCounter++; // Increment if the answer is correct
+                            }
+
                             _results.add({
                               'question': _currentQuestion?['question'],
                               'selected': _selectedOption,
@@ -451,9 +465,11 @@ class _QuizScreenState extends State<QuizScreen> {
                                     : "Wrong! The correct answer is ${_currentQuestion?['correct_answer']}.",
                               ),
                             ));
+
                             setState(() {
                               _questionCounter++;
                             });
+
                             _getRandomQuestion();
                           }
                         },
@@ -461,9 +477,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           foregroundColor: Colors.white,
                           backgroundColor: Color(0xFF00796B),
                           padding: EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 16,
-                          ),
+                              horizontal: 32, vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -471,9 +485,7 @@ class _QuizScreenState extends State<QuizScreen> {
                         ),
                         child: Text(
                           "Next",
-                          style: TextStyle(
-                            fontSize: 18,
-                          ),
+                          style: TextStyle(fontSize: 18),
                         ),
                       ),
                     ],

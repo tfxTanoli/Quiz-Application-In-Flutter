@@ -55,7 +55,7 @@ class _SignupPageState extends State<SignupPage> {
             const SizedBox(height: 20),
             TextFormField(
               controller: name,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.black),
               decoration: const InputDecoration(
                 hintText: "Enter your name",
                 hintStyle: TextStyle(color: Colors.grey),
@@ -71,7 +71,7 @@ class _SignupPageState extends State<SignupPage> {
             const SizedBox(height: 20),
             TextFormField(
               controller: email,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.black),
               decoration: const InputDecoration(
                 hintText: "Enter your email",
                 hintStyle: TextStyle(color: Colors.grey),
@@ -88,7 +88,7 @@ class _SignupPageState extends State<SignupPage> {
             TextFormField(
               controller: password,
               obscureText: true,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.black),
               decoration: const InputDecoration(
                 hintText: "Enter your password",
                 hintStyle: TextStyle(color: Colors.grey),
