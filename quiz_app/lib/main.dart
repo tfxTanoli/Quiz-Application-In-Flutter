@@ -5,6 +5,7 @@ import 'package:quiz_app/Result.dart';
 import 'firebase_options.dart';
 import 'signup_page.dart';
 import 'dart:math';
+import 'dart:async';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -125,6 +126,7 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
                   children: [
                     TextFormField(
                       controller: _questionController,
+                      style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                           labelStyle: TextStyle(color: Colors.black),
                           hintText: "Type your question here",
@@ -139,6 +141,7 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
                     SizedBox(height: 12),
                     TextFormField(
                       controller: _optionAController,
+                      style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         hintText: "Option A",
                         hintStyle: TextStyle(color: Colors.black),
@@ -154,6 +157,7 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
                     SizedBox(height: 12),
                     TextFormField(
                       controller: _optionBController,
+                      style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelStyle: TextStyle(color: Colors.black),
                         hintStyle: TextStyle(color: Colors.black),
@@ -169,6 +173,7 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
                     SizedBox(height: 12),
                     TextFormField(
                       controller: _optionCController,
+                      style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelStyle: TextStyle(color: Colors.black),
                         hintStyle: TextStyle(color: Colors.black),
@@ -184,6 +189,7 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
                     SizedBox(height: 12),
                     TextFormField(
                       controller: _optionDController,
+                      style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelStyle: TextStyle(color: Colors.black),
                         hintStyle: TextStyle(color: Colors.black),
@@ -199,6 +205,7 @@ class _AddQuestionFormState extends State<AddQuestionForm> {
                     SizedBox(height: 12),
                     TextFormField(
                       controller: _correctAnswerController,
+                      style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelStyle: TextStyle(color: Colors.black),
                         hintStyle: TextStyle(color: Colors.black),
@@ -253,21 +260,29 @@ class _QuizScreenState extends State<QuizScreen> {
   Set<String> _shownQuestionIds = {};
   List<Map<String, dynamic>> _results = [];
   int _questionCounter = 0;
-  int correctQuestionCounter =
-      0; // Counter for the number of questions answered
-  final int _totalQuestions = 10; // Limit to 10 questions
+  int correctQuestionCounter = 0;
+  final int _totalQuestions = 10;
+  int _remainingTime = 15;
+  Timer? _timer;
+  double percentage = 0.0;
+  String? status;
 
   Future<void> _getRandomQuestion() async {
     if (_questionCounter >= _totalQuestions) {
-      // If all questions have been answered, navigate to ResultPage
+      if (percentage >= 50) {
+        status = 'Pass';
+      } else {
+        status = 'Fail';
+      }
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => ResultsPage(
-            results: _results,
-            username: widget.username,
-            correctanswers: correctQuestionCounter,
-          ),
+              results: _results,
+              username: widget.username,
+              correctanswers: correctQuestionCounter,
+              percentage: percentage,
+              status: status),
         ),
       );
       return;
@@ -276,7 +291,10 @@ class _QuizScreenState extends State<QuizScreen> {
     setState(() {
       _isLoading = true;
       _selectedOption = null;
+      _remainingTime = 15;
     });
+
+    _startTimer();
 
     try {
       QuerySnapshot querySnapshot =
@@ -297,7 +315,6 @@ class _QuizScreenState extends State<QuizScreen> {
           ));
           return;
         }
-
         Random random = Random();
         int randomIndex = random.nextInt(availableQuestions.length);
         QueryDocumentSnapshot selectedQuestion =
@@ -331,10 +348,51 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_remainingTime > 0) {
+        setState(() {
+          _remainingTime--;
+        });
+      } else {
+        timer.cancel();
+        _handleTimeout();
+      }
+    });
+  }
+
+  void _handleTimeout() {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        "Time's up! The correct answer is ${_currentQuestion?['correct_answer']}.",
+      ),
+    ));
+
+    _results.add({
+      'question': _currentQuestion?['question'],
+      'selected': null,
+      'correctAnswer': _currentQuestion?['correct_answer'],
+      'isCorrect': false,
+    });
+
+    setState(() {
+      _questionCounter++;
+    });
+
+    _getRandomQuestion();
+  }
+
   @override
   void initState() {
     super.initState();
     _getRandomQuestion();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -345,11 +403,9 @@ class _QuizScreenState extends State<QuizScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Username ${widget.username}',
-                style: TextStyle(color: Colors.white)), // Left-aligned username
+            Text('${widget.username}', style: TextStyle(color: Colors.white)),
             Text('Quiz (${_questionCounter + 1}/$_totalQuestions)',
-                style: TextStyle(
-                    color: Colors.white)), // Right-aligned question progress
+                style: TextStyle(color: Colors.white)),
           ],
         ),
         backgroundColor: Colors.black,
@@ -361,10 +417,11 @@ class _QuizScreenState extends State<QuizScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => ResultsPage(
-                    results: _results,
-                    username: widget.username,
-                    correctanswers: correctQuestionCounter,
-                  ),
+                      results: _results,
+                      username: widget.username,
+                      correctanswers: correctQuestionCounter,
+                      percentage: percentage,
+                      status: status),
                 ),
               );
             },
@@ -390,7 +447,7 @@ class _QuizScreenState extends State<QuizScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white, // White text color
+                          color: Colors.white,
                         ),
                       ),
                       SizedBox(height: 8),
@@ -436,6 +493,15 @@ class _QuizScreenState extends State<QuizScreen> {
                           ),
                         ),
                       Spacer(),
+                      Text(
+                        "Time Remaining: $_remainingTime seconds",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                      SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () {
                           if (_selectedOption == null) {
@@ -447,7 +513,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                 _currentQuestion?['correct_answer'];
 
                             if (isCorrect) {
-                              correctQuestionCounter++; // Increment if the answer is correct
+                              correctQuestionCounter++;
                             }
 
                             _results.add({
@@ -468,6 +534,10 @@ class _QuizScreenState extends State<QuizScreen> {
 
                             setState(() {
                               _questionCounter++;
+                              if (_questionCounter >= 10) {
+                                percentage =
+                                    (correctQuestionCounter / 10) * 100;
+                              }
                             });
 
                             _getRandomQuestion();
@@ -494,3 +564,6 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 }
+
+
+

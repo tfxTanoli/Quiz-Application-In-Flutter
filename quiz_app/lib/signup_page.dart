@@ -35,6 +35,66 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
 
+  Future<void> checkAndSignupUser() async {
+    String enteredEmail = email.text.trim();
+
+    // Fetch data from the database to check if the email already exists
+    final snapshot = await databaseRef.get();
+    var data = snapshot.value;
+
+    if (data != null && data is Map) {
+      bool emailExists = false;
+
+      // Check if entered email matches any existing email
+      data.forEach((key, value) {
+        if (value is Map && value['Email'] == enteredEmail) {
+          emailExists = true;
+        }
+      });
+
+      if (emailExists) {
+        debugPrint("This email is already registered. Signup failed.");
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Email is already registered."),
+          backgroundColor: Colors.red,
+        ));
+        return;
+      }
+    }
+
+    // If email does not exist, proceed with signup
+    if (password.text.toString().length > 10 &&
+        email.text.toString().contains('@gmail.com') &&
+        email.text.toString().length > 8) {
+      databaseRef.push().set({
+        'Name': name.text.toString(),
+        'Email': email.text.toString(),
+        'Password': password.text.toString(),
+      }).then((_) {
+        debugPrint("Signup Successful");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => QuizScreen(username: name.text.toString()),
+          ),
+        );
+      }).onError((error, StackTrace) {
+        debugPrint('Error: $error');
+      });
+    } else if (email.text.toString().length == 0) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Fill the Email field')));
+    } else if (name.text.toString().length == 0) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Fill the Name field')));
+    } else if (password.text.toString().length == 0) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please set password')));
+    } else {
+      debugPrint("Invalid data. Signup failed.");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,27 +166,7 @@ class _SignupPageState extends State<SignupPage> {
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 50),
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (password.text.toString().length > 10 &&
-                        email.text.toString().contains('@gmail.com') &&
-                        email.text.toString().length > 8) {
-                      databaseRef.child('UserInfo').push().set({
-                        'Name : ${name.text.toString()} Email: ${email.text.toString()} Password : ${password.text.toString()}'
-                      }).then((_) {
-                        debugPrint("Signup Successfully");
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => QuizScreen(
-                                      username: name.text.toString(),
-                                    )));
-                      }).onError((error, StackTrace) {
-                        debugPrint('Error : $error');
-                      });
-                    } else {
-                      debugPrint("Not Signup Successfully");
-                    }
-                  },
+                  onPressed: checkAndSignupUser,
                   child: const Text("Signup"),
                 ),
               ),
@@ -140,8 +180,8 @@ class _SignupPageState extends State<SignupPage> {
                     MaterialPageRoute(builder: (context) => LoginPage()),
                   );
                 },
-                child: Text(
-                  "Already have an account?Login",
+                child: const Text(
+                  "Already have an account? Login",
                   style: TextStyle(color: Colors.blue),
                 ),
               ),

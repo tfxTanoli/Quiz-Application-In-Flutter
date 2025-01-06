@@ -1,23 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ResultsPage extends StatelessWidget {
   final List<Map<String, dynamic>> results;
   final String? username;
   final int? correctanswers;
+  final double? percentage;
+  final String? status;
 
-  ResultsPage(
-      {required this.results,
-      required this.username,
-      required this.correctanswers});
+  ResultsPage({
+    required this.results,
+    required this.username,
+    required this.correctanswers,
+    required this.percentage,
+    required this.status,
+  }) {
+    _saveResultsToFirebase();
+  }
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> _saveResultsToFirebase() async {
+    try {
+      await _firestore.collection('quiz_results').add({
+        'username': username,
+        'correct_answers': correctanswers,
+        'percentage': percentage,
+        'status': status,
+        'results': results,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      debugPrint("Quiz results saved successfully!");
+    } catch (e) {
+      debugPrint("Failed to save results: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Results"),
+        title: const Text("Results"),
       ),
       body: results.isEmpty
-          ? Center(
+          ? const Center(
               child: Text(
                 "No results to show.",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -27,7 +53,7 @@ class ResultsPage extends StatelessWidget {
               children: [
                 SizedBox(height: 20),
                 Text(
-                  "$username, you answered $correctanswers out of ${results.length} questions correctly!",
+                  "$username, you answered $correctanswers out of ${results.length} questions correctly!\nYou Got $percentage% marks\nYou are $status❤️",
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.white,

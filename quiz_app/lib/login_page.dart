@@ -1,7 +1,5 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_app/main.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -12,53 +10,31 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
-  final _database = FirebaseDatabase.instanceFor(
-    app: Firebase.app(),
-    databaseURL: "https://fa21-bcs-130-default-rtdb.firebaseio.com/",
-  ).ref();
 
   Future<void> authenticateUser() async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
-    try {
-      // Sign in with Firebase Authentication
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+    if (email == "admin@gmail.com" && password == "administrator") {
+      // Navigate to AddQuestionForm for admin
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => AddQuestionForm()),
       );
-
-      // Fetch user details from Firebase Realtime Database
-      final snapshot = await _database.child('UserInfo').get();
-      var data = snapshot.value;
-
-      // Check if data is a Map
-      if (data != null && data is Map) {
-        bool isAuthenticated = false;
-        data.forEach((key, value) {
-          if (value['email'] == email && value['pass'] == password) {
-            isAuthenticated = true;
-          }
-        });
-
-        if (isAuthenticated) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Login successful!'),
-          ));
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Invalid email or password!'),
-          ));
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('No user data found.'),
-        ));
-      }
-    } catch (e) {
+    } else if (email == "usman5194999@gmail.com" && password == "tfxUsman124") {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => QuizScreen(username: "Muhammad Usman")));
+    } else if (email == 'sajalal678@gmail.com' && password == 'sajalali123') {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => QuizScreen(username: "Sajal Ali")));
+    } else {
+      // For non-admin, show an error
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Authentication failed: $e'),
+        content: Text('Invalid email or password!'),
       ));
     }
   }
@@ -80,29 +56,27 @@ class _LoginPageState extends State<LoginPage> {
               style: const TextStyle(color: Colors.black),
               controller: _emailController,
               decoration: const InputDecoration(
-                labelStyle: TextStyle(color: Colors.black),
-                hintStyle: TextStyle(color: Colors.grey),
                 hintText: "Enter your email",
+                hintStyle: TextStyle(color: Colors.grey),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextFormField(
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               controller: _passwordController,
-              decoration: InputDecoration(
-                labelStyle: TextStyle(color: Colors.black),
-                hintStyle: TextStyle(color: Colors.grey),
+              decoration: const InputDecoration(
                 hintText: "Enter your password",
+                hintStyle: TextStyle(color: Colors.grey),
               ),
               obscureText: true,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: authenticateUser,
-              child: Text("Login"),
+              child: const Text("Login"),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             TextButton(
               onPressed: () {
                 Navigator.push(
@@ -110,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
                   MaterialPageRoute(builder: (context) => SignupPage()),
                 );
               },
-              child: Text(
+              child: const Text(
                 "Don't have an account? Sign Up",
                 style: TextStyle(color: Colors.blue),
               ),
